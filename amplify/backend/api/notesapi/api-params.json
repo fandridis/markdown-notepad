@@ -1,0 +1,44 @@
+{
+    "paths": [
+        {
+            "name": "/notes",
+            "lambdaFunction": "notesfunction",
+            "privacy": {
+                "protected": true,
+                "auth": [
+                    "/POST",
+                    "/GET",
+                    "/PUT",
+                    "/PATCH",
+                    "/DELETE"
+                ],
+                "unauth": [
+                    "/GET"
+                ]
+            }
+        }
+    ],
+    "resourceName": "notesapi",
+    "apiName": "notesapi",
+    "functionArns": [
+        {
+            "lambdaFunction": "notesfunction"
+        }
+    ],
+    "privacy": {
+        "auth": 1,
+        "unauth": 1,
+        "authRoleName": "amplify-markdownnotepad-dev-190546-authRole",
+        "unAuthRoleName": "amplify-markdownnotepad-dev-190546-unauthRole"
+    },
+    "dependsOn": [
+        {
+            "category": "function",
+            "resourceName": "notesfunction",
+            "attributes": [
+                "Name",
+                "Arn"
+            ]
+        }
+    ]
+}

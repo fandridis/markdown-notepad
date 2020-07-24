@@ -1,0 +1,23 @@
+{
+  "mutableParametersState": {
+    "permissions": {
+      "auth": {
+        "markdownnotepadba9d5d4e": [
+          "create",
+          "read",
+          "update",
+          "delete"
+        ]
+      },
+      "storage": {
+        "notes": [
+          "create",
+          "read",
+          "update",
+          "delete"
+        ]
+      }
+    }
+  },
+  "lambdaLayers": []
+}
