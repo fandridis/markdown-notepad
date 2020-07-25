@@ -1,26 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import styled from "styled-components";
-import { FileMarkdownOutlined } from "@ant-design/icons";
-import EditorContent from "./EditorContent";
-import EditorFooter from "./EditorFooter";
 import { Button, Input } from "antd";
-import { Note, EditorMode } from "../../types";
-
-/**
- * TYPES & DEFAULTS
- */
-type MarkdownEditorProps = {
-  mode: EditorMode;
-  source: string | null;
-  selectedNote: Note | null;
-  onNoteSave: (note: Note) => void;
-  onNoteDelete: (note: Note) => void;
-  onModeToggle: () => void;
-};
-
-MarkdownEditor.defaultProps = {
-  source: null,
-};
+import {
+  FileMarkdownOutlined,
+  DeleteOutlined,
+  SaveOutlined,
+  EditOutlined,
+} from "@ant-design/icons";
+import EditorContent from "./EditorContent";
+import { AppStateContext } from "../../context";
+import useNotesApi from "../../hooks/useNotesApi";
+import { Note } from "../../types";
 
 /**
  * STYLES
@@ -34,7 +24,7 @@ const Container = styled.div`
 
 const Header = styled.div`
   overflow: scroll;
-  padding: 8px 16px;
+  padding: 5px 16px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -71,48 +61,55 @@ const Footer = styled.div`
 /**
  * COMPONENT
  */
-function MarkdownEditor(props: MarkdownEditorProps) {
-  const [title, setTitle] = useState("");
-  const [markdownText, setMarkdownText] = useState("");
-  const isOnEditMode = props.mode === "edit";
+function MarkdownEditor() {
+  const { state, dispatch } = useContext(AppStateContext);
+  const { createNote, updateNote, deleteNote } = useNotesApi();
+  const [note, setNote] = useState<Note>({ id: "", title: "", content: "" });
+  const isOnEditMode = state.mode === "edit";
 
+  // If coming from editing an existing note, populate the fields with its data
   useEffect(() => {
-    console.log("Selected note: ", props.selectedNote);
-    if (props.selectedNote) {
-      setMarkdownText(props.selectedNote.content);
-      setTitle(props.selectedNote.title);
+    if (state.selectedNote) {
+      setNote({ ...state.selectedNote });
     }
-  }, [props.selectedNote]);
+  }, [state.selectedNote]);
 
-  const handleContentChange = (e: any) => {
-    setMarkdownText(e.target.value);
-  };
-
-  const handleTitleChange = (e: any) => {
-    setTitle(e.target.value);
+  const handleInputChange = (e: any) => {
+    setNote({ ...note, [e.target.name]: e.target.value });
   };
 
   const onSave = () => {
-    console.log("--- onSave ---");
-    const note = {
-      title: title,
-      content: markdownText,
-      id: props.selectedNote?.id,
-    };
-    props.onNoteSave(note);
+    if (note.id) {
+      updateNote(note);
+    } else {
+      createNote(note);
+    }
   };
 
   const onDelete = () => {
-    console.log("--- onDelete ---");
-    const note = {
-      title: title,
-      content: markdownText,
-      id: props.selectedNote?.id,
-    };
-    props.onNoteDelete(note);
+    deleteNote(note);
   };
 
-  if (!props.selectedNote) {
+  const onCancel = () => {
+    if (state.selectedNote) {
+      setNote({ ...state.selectedNote });
+    }
+
+    handleToggleMode();
+  };
+
+  const handleToggleMode = () => {
+    const mode = state.mode === "view" ? "edit" : "view";
+    dispatch({
+      type: "TOGGLE_MODE",
+      payload: {
+        mode,
+        note: state.selectedNote?.id ? state.selectedNote : null,
+      },
+    });
+  };
+
+  if (!state.selectedNote) {
     return (
       <div
         style={{
@@ -133,47 +130,63 @@ function MarkdownEditor(props: MarkdownEditorProps) {
   return (
     <Container>
       <Header>
-        {props.mode === "view" ? (
-          <span>{props.selectedNote.title}</span>
+        {state.mode === "view" ? (
+          <span>{note.title}</span>
         ) : (
           <Input
             placeholder="Add a title"
-            value={title || ""}
-            onChange={handleTitleChange}
+            value={note.title || ""}
+            name="title"
+            onChange={handleInputChange}
           />
         )}
       </Header>
       <Content>
         <EditorContent
-          mode={props.mode}
-          content={markdownText} // {props.selectedNote.content}
-          onContentChange={handleContentChange}
+          content={note.content}
+          name="content"
+          onContentChange={handleInputChange}
         />
       </Content>
       <Footer>
         {isOnEditMode ? (
           <>
             <div style={{ flex: 1 }}>
-              <Button onClick={props.onModeToggle}>Cancel</Button>
+              <Button disabled={state.isMutatingNote} onClick={onCancel}>
+                Cancel
+              </Button>
             </div>
             <div>
-              {props.selectedNote?.id && (
+              {note.id && (
                 <Button
                   style={{ marginRight: "8px" }}
                   type="primary"
                   danger
+                  disabled={state.isMutatingNote}
                   onClick={onDelete}
                 >
+                  <DeleteOutlined style={{ fontSize: "16px" }} />
                   Delete
                 </Button>
               )}
-              <Button type="primary" onClick={onSave}>
+              <Button
+                type="primary"
+                disabled={state.isMutatingNote}
+                onClick={onSave}
+              >
+                <SaveOutlined style={{ fontSize: "16px" }} />
                 Save
               </Button>
             </div>
           </>
         ) : (
-          <Button onClick={props.onModeToggle}>Edit</Button>
+          <Button
+            disabled={state.isMutatingNote || state.isDecrypting}
+            onClick={handleToggleMode}
+          >
+            <FileMarkdownOutlined style={{ fontSize: "16px" }} />
+            Edit
+          </Button>
         )}
       </Footer>
     </Container>

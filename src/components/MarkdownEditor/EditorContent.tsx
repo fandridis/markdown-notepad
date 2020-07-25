@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useContext } from "react";
 import styled from "styled-components";
 import ReactMarkdown from "react-markdown";
+import { AppStateContext } from "../../context";
+import { Spinner } from "../../components";
 
 /**
  * TYPES
  */
 type EditorContentProps = {
-  mode: "view" | "edit";
   content: string;
+  name: string;
   onContentChange: (e: any) => void;
 };
 
@@ -15,6 +17,7 @@ type EditorContentProps = {
  * STYLES
  */
 const Container = styled.div`
+  position: relative;
   height: 100%;
 `;
 
@@ -40,7 +43,6 @@ const ViewArea = styled.div`
  * DEFAULT PROPS
  */
 EditorContent.defaultProps = {
-  mode: "view",
   content: "",
 };
 
@@ -48,18 +50,29 @@ EditorContent.defaultProps = {
  * COMPONENT
  */
 function EditorContent(props: EditorContentProps) {
+  const { state } = useContext(AppStateContext);
+
+  const showLoading = state.isEncrypting || state.isDecrypting;
+
   return (
     <Container>
-      {props.mode === "view" ? (
+      {state.mode === "view" ? (
         <ViewArea>
           <ReactMarkdown source={props.content} />
         </ViewArea>
       ) : (
         <EditArea
           value={props.content}
+          name={props.name}
           placeholder="Add your markdown text here..."
           onChange={props.onContentChange}
         />
+      )}
+
+      {showLoading && (
+        <div style={{ position: "absolute", top: "48%", left: "48%" }}>
+          <Spinner />
+        </div>
       )}
     </Container>
   );

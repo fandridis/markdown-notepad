@@ -1,8 +1,12 @@
 export type AppState = {
+  user: User | null;
   notes: Note[];
-  notesLoading: boolean;
   selectedNote: Note | null;
-  mode: EditorMode;
+  mode: "view" | "edit";
+  isFetchingNotes: boolean;
+  isMutatingNote: boolean;
+  isDecrypting: boolean;
+  isEncrypting: boolean;
 };
 
 export type Note = {
@@ -11,9 +15,13 @@ export type Note = {
   content: string;
 };
 
-export type EditorMode = "view" | "edit";
-
-export type ReducerAction = {
+export type AppReducerAction = {
   type: string;
   payload: any;
+};
+
+export type User = {
+  username: string;
+  email: string;
+  iAuthorized: boolean;
 };

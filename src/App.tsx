@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback, useReducer } from "react";
+import React, { useState, useEffect, useReducer, useContext } from "react";
 import { withAuthenticator } from "@aws-amplify/ui-react";
 import { Button, Tooltip } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { API } from "aws-amplify";
 import styled from "styled-components";
 import checkUser from "./utils/checkUser";
 import { MarkdownEditor, NoteList } from "./components";
-import { AppState, Note, ReducerAction } from "./types";
+import { AppStateContext, appReducer, INITIAL_STATE } from "./context";
+import useNotesApi from "./hooks/useNotesApi";
+import { Note, User } from "./types";
 import "./App.css";
 
 /**
@@ -23,7 +24,7 @@ const Container = styled.div`
 const Content = styled.div`
   min-height: 88vh;
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
   display: grid;
   grid-template-columns: 200px auto;
   grid-template-rows: auto 1fr;
@@ -34,8 +35,17 @@ const Content = styled.div`
 const Header = styled.div`
   grid-column: span 2;
   padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   border-bottom: 1px solid #ddd;
-  text-align: end;
+
+  h3 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    color: rgb(24, 144, 255);
+  }
 `;
 
 const Main = styled.div`
@@ -50,80 +60,24 @@ const Sidebar = styled.div`
 `;
 
 /**
- * GLOBAL APP STATE
- */
-const initialState: AppState = {
-  notes: [],
-  notesLoading: true,
-  selectedNote: null,
-  mode: "view",
-};
-
-/**
- * GLOBAL APP STATE REDUCER
- */
-function reducer(state: AppState, action: ReducerAction) {
-  switch (action.type) {
-    case "NOTES_RECEIVED":
-      return { ...state, notes: action.payload.notes, notesLoading: false };
-    case "NOTE_CREATED":
-      return {
-        ...state,
-        selectedNote: action.payload.note,
-        mode: action.payload.mode,
-        notes: [action.payload.note, ...state.notes],
-      };
-    case "NOTE_UPDATED":
-      return {
-        ...state,
-        selectedNote: action.payload.note,
-        mode: action.payload.mode,
-        notes: state.notes.map((note) =>
-          note.id === action.payload.note.id ? action.payload.note : note
-        ),
-      };
-    case "NOTE_DELETED":
-      return {
-        ...state,
-        mode: action.payload.mode,
-        selectedNote: action.payload.selectedNote,
-        notes: state.notes.filter((note) => note.id !== action.payload.note.id),
-      };
-    case "TOGGLE_MODE":
-      return { ...state, mode: action.payload.mode };
-    case "NOTE_SELECTED":
-      return { ...state, selectedNote: action.payload.note };
-    case "ERROR":
-      return { ...state, loading: false, error: true };
-    default:
-      return state;
-  }
-}
-
-/**
  * COMPONENT
  */
 function App() {
-  const [state, dispatch] = useReducer(reducer, initialState);
-  const [user, updateUser] = useState({});
-
-  const getNotes = useCallback(async () => {
-    const res = await API.get("notesapi", "/notes", null);
-    console.log("res: ", res);
-    dispatch({
-      type: "NOTES_RECEIVED",
-      payload: { notes: res.data.Items },
-    });
-  }, []);
+  const { state, dispatch } = useContext(AppStateContext);
+  const [user, updateUser] = useState<User | null | undefined>();
+  const { fetchNotes } = useNotesApi();
 
   useEffect(() => {
-    getNotes();
+    fetchNotes();
     checkUser(updateUser);
-  }, [getNotes]);
+  }, [fetchNotes]);
 
   useEffect(() => {
     console.log("user: ", user);
-  }, [user]);
+    if (user) {
+      dispatch({ type: "USER_AUTHENTICATED", payload: { user } });
+    }
+  }, [user, dispatch]);
 
   const onAddNewNote = () => {
     const note = {
@@ -131,84 +85,8 @@ function App() {
       content: "",
     };
     dispatch({
-      type: "NOTE_SELECTED",
-      payload: { note },
-    });
-    dispatch({
       type: "TOGGLE_MODE",
-      payload: { mode: "edit" },
-    });
-  };
-
-  const onNoteSave = (note: Note) => {
-    if (note.id) {
-      console.log("Updating existing note: ", note);
-      handleUpdateNote(note);
-    } else {
-      console.log("Creating new note: ", note);
-      handleCreateNote(note);
-    }
-  };
-
-  const onNoteDelete = async (note: Note) => {
-    try {
-      const data = {
-        body: { id: note.id },
-      };
-      await API.del("notesapi", `/notes`, data);
-      dispatch({
-        type: "NOTE_DELETED",
-        payload: { note, selectedNote: null, mode: "view" },
-      });
-    } catch (err) {
-      console.log("error deleting a note...");
-    }
-  };
-
-  const handleUpdateNote = async (note: Note) => {
-    try {
-      const data = {
-        body: { title: note.title, content: note.content, id: note.id },
-      };
-      const res = await API.put("notesapi", "/notes", data);
-      console.log("res: ", res);
-      dispatch({
-        type: "NOTE_UPDATED",
-        payload: { note, mode: "view" },
-      });
-    } catch (err) {
-      console.log("error creating a note...");
-    }
-  };
-
-  const handleCreateNote = async (note: Note) => {
-    try {
-      const data = {
-        body: { title: note.title, content: note.content },
-      };
-      const res = await API.post("notesapi", "/notes", data);
-      dispatch({
-        type: "NOTE_CREATED",
-        payload: { note: res.note, mode: "view" },
-      });
-    } catch (err) {
-      console.log("error creating a note...");
-    }
-  };
-
-  const handleModeToggle = () => {
-    const mode = state.mode === "view" ? "edit" : "view";
-    dispatch({
-      type: "TOGGLE_MODE",
-      payload: { mode },
-    });
-  };
-
-  const handleNoteSelect = (note: Note) => {
-    console.log("selecting: ", note);
-    dispatch({
-      type: "NOTE_SELECTED",
-      payload: { note },
+      payload: { mode: "edit", note },
     });
   };
 
@@ -216,6 +94,7 @@ function App() {
     <Container>
       <Content>
         <Header>
+          <h3>Account: {user?.username}</h3>
           <Tooltip
             title={state.mode === "edit" ? "Finish editing to enable" : ""}
           >
@@ -230,25 +109,28 @@ function App() {
           </Tooltip>
         </Header>
         <Sidebar>
-          <NoteList
-            notes={state.notes}
-            notesLoading={state.notesLoading}
-            onNoteSelect={handleNoteSelect}
-            isClickDisabled={state.mode === "edit"}
-          />
+          <NoteList />
         </Sidebar>
         <Main>
-          <MarkdownEditor
-            mode={state.mode}
-            selectedNote={state.selectedNote}
-            onModeToggle={handleModeToggle}
-            onNoteSave={onNoteSave}
-            onNoteDelete={onNoteDelete}
-          />
+          <MarkdownEditor />
         </Main>
       </Content>
     </Container>
   );
 }
 
-export default withAuthenticator(App);
+/**
+ * Wrapping the App with the AppStateContext so the main App component and
+ * all its children have access to the appState.
+ */
+function AppWrapper() {
+  const [appState, dispatch] = useReducer(appReducer, INITIAL_STATE);
+
+  return (
+    <AppStateContext.Provider value={{ state: appState, dispatch: dispatch }}>
+      <App />
+    </AppStateContext.Provider>
+  );
+}
+
+export default withAuthenticator(AppWrapper);
