@@ -9,14 +9,9 @@ async function checkUser(updateUser: any) {
     updateUser({});
     return;
   }
-  //   const {
-  //     idToken: { payload },
-  //   } = userData;
-
-  console.log("userData: ", userData);
 
   updateUser({
-    // username: payload["cognito:username"],
+    username: userData.getIdToken().payload["cognito:username"],
     isAuthorized: true,
   });
 }

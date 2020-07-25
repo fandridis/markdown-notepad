@@ -90,7 +90,7 @@
 				"Timeout": "25",
 				"Code": {
 					"S3Bucket": "amplify-markdownnotepad-dev-190546-deployment",
-					"S3Key": "amplify-builds/notesfunction-6d665574695877354367-build.zip"
+					"S3Key": "amplify-builds/notesfunction-626e6c6d35597363796d-build.zip"
 				}
 			}
 		},

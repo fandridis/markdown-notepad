@@ -49,7 +49,7 @@ app.use(function (req, res, next) {
 });
 
 /**********************
- * Example get method *
+ * GET methods *
  **********************/
 
 app.get("/notes", async function (req, res) {
@@ -71,13 +71,8 @@ async function getNotes() {
   }
 }
 
-app.get("/notes/*", function (req, res) {
-  // Add your code here
-  res.json({ success: "get call succeed!", url: req.url });
-});
-
 /****************************
- * Example post method *
+ * POST methods *
  ****************************/
 
 app.post("/notes", async function (req, res) {
@@ -92,29 +87,49 @@ app.post("/notes", async function (req, res) {
     };
 
     await docClient.put(params).promise();
-    res.json({ success: "note saved to database.." });
+
+    res.json({ success: "successfully created the note", note: input });
   } catch (err) {
     res.json({ error: err });
   }
 });
 
-app.post("/notes/*", function (req, res) {
-  // Add your code here
-  res.json({ success: "post call succeed!", url: req.url, body: req.body });
-});
-
 /****************************
- * Example put method *
+ * PUT methods *
  ****************************/
 
-app.put("/notes", function (req, res) {
+app.put("/notes", async function (req, res) {
   // Add your code here
-  res.json({ success: "put call succeed!", url: req.url, body: req.body });
-});
+  const { body } = req;
+  const { event } = req.apiGateway;
+  const { id, ...note } = body;
 
-app.put("/notes/*", function (req, res) {
-  // Add your code here
-  res.json({ success: "put call succeed!", url: req.url, body: req.body });
+  try {
+    await canPerformAction(event);
+    const input = note;
+    var params = {
+      TableName: ddb_table_name,
+      Item: input,
+      Key: { id },
+
+      UpdateExpression: "SET #title = :newTitle, #content = :newContent",
+      ExpressionAttributeNames: {
+        "#title": "title",
+        "#content": "content",
+      },
+      ExpressionAttributeValues: {
+        ":newTitle": note.title,
+        ":newContent": note.content,
+      },
+      ReturnValues: "UPDATED_NEW",
+    };
+
+    await docClient.update(params).promise();
+    res.json({ success: "successfully updated the note" });
+  } catch (err) {
+    console.log("error: ", err);
+    res.json({ error: err });
+  }
 });
 
 /****************************
@@ -123,22 +138,19 @@ app.put("/notes/*", function (req, res) {
 
 app.delete("/notes", async function (req, res) {
   const { event } = req.apiGateway;
+  const { id } = req.body;
+
   try {
     await canPerformAction(event);
     var params = {
       TableName: ddb_table_name,
-      Key: { id: req.body.id },
+      Key: { id },
     };
     await docClient.delete(params).promise();
     res.json({ success: "successfully deleted the note" });
   } catch (err) {
     res.json({ error: err });
   }
-});
-
-app.delete("/notes/*", function (req, res) {
-  // Add your code here
-  res.json({ success: "delete call succeed!", url: req.url });
 });
 
 app.listen(3000, function () {
