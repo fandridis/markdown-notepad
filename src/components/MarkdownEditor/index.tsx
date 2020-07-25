@@ -184,7 +184,7 @@ function MarkdownEditor() {
             disabled={state.isMutatingNote || state.isDecrypting}
             onClick={handleToggleMode}
           >
-            <FileMarkdownOutlined style={{ fontSize: "16px" }} />
+            <EditOutlined style={{ fontSize: "16px" }} />
             Edit
           </Button>
         )}

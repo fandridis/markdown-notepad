@@ -10,9 +10,6 @@ async function checkUser(updateUser: any) {
     return;
   }
 
-  console.log("userData: ", userData);
-  console.log("userTokenData: ", userData.getIdToken());
-
   updateUser({
     username: userData.getIdToken().payload["cognito:username"],
     email: userData.getIdToken().payload["email"],

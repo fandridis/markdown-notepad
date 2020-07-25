@@ -11,6 +11,7 @@ export type AppState = {
 
 export type Note = {
   id?: string;
+  userRef?: string;
   title: string;
   content: string;
 };

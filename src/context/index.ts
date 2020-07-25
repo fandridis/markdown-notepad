@@ -7,7 +7,7 @@ export const INITIAL_STATE: AppState = {
   selectedNote: null,
   mode: "view",
 
-  isFetchingNotes: false,
+  isFetchingNotes: true,
   isMutatingNote: false,
   isDecrypting: false,
   isEncrypting: false,
@@ -26,6 +26,10 @@ export const appReducer: Reducer<AppState, AppReducerAction> = (
   switch (action.type) {
     case "USER_AUTHENTICATED":
       return { ...state, user: action.payload.user };
+
+    case "LOGOUT_SUCCEEDED": {
+      return { ...state, user: null };
+    }
 
     case "TOGGLE_MODE":
       return {

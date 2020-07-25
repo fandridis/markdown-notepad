@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useReducer, useContext } from "react";
+import { Auth } from "aws-amplify";
 import { withAuthenticator } from "@aws-amplify/ui-react";
 import { Button, Tooltip } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
@@ -7,8 +8,12 @@ import checkUser from "./utils/checkUser";
 import { MarkdownEditor, NoteList } from "./components";
 import { AppStateContext, appReducer, INITIAL_STATE } from "./context";
 import useNotesApi from "./hooks/useNotesApi";
-import { Note, User } from "./types";
+import { User } from "./types";
 import "./App.css";
+
+type AppProps = {
+  user: User;
+};
 
 /**
  * STYLES
@@ -62,22 +67,19 @@ const Sidebar = styled.div`
 /**
  * COMPONENT
  */
-function App() {
+function App(props: AppProps) {
   const { state, dispatch } = useContext(AppStateContext);
-  const [user, updateUser] = useState<User | null | undefined>();
   const { fetchNotes } = useNotesApi();
 
   useEffect(() => {
-    fetchNotes();
-    checkUser(updateUser);
-  }, [fetchNotes]);
+    dispatch({ type: "USER_AUTHENTICATED", payload: { user: props.user } });
+  }, []);
 
   useEffect(() => {
-    console.log("user: ", user);
-    if (user) {
-      dispatch({ type: "USER_AUTHENTICATED", payload: { user } });
+    if (state.user) {
+      fetchNotes();
     }
-  }, [user, dispatch]);
+  }, [state.user]);
 
   const onAddNewNote = () => {
     const note = {
@@ -90,11 +92,26 @@ function App() {
     });
   };
 
+  const handleLogout = () => {
+    Auth.signOut()
+      .then(() => {
+        dispatch({ type: "LOGOUT_SUCCEEDED", payload: {} });
+        window.location.reload();
+      })
+      .catch(() => console.log("error signing out: "));
+  };
+
   return (
     <Container>
       <Content>
         <Header>
-          <h3>Account: {user?.username}</h3>
+          <div style={{ display: "flex" }}>
+            <h3 style={{ marginRight: "8px" }}>
+              Account: {props.user.username}
+            </h3>
+            <Button onClick={handleLogout}>Logout</Button>
+          </div>
+
           <Tooltip
             title={state.mode === "edit" ? "Finish editing to enable" : ""}
           >
@@ -125,10 +142,19 @@ function App() {
  */
 function AppWrapper() {
   const [appState, dispatch] = useReducer(appReducer, INITIAL_STATE);
+  const [user, updateUser] = useState<User | null | undefined>();
+
+  useEffect(() => {
+    checkUser(updateUser);
+  }, []);
+
+  if (!user) {
+    return <div>Loading</div>;
+  }
 
   return (
     <AppStateContext.Provider value={{ state: appState, dispatch: dispatch }}>
-      <App />
+      <App user={user} />
     </AppStateContext.Provider>
   );
 }

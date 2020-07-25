@@ -7,24 +7,27 @@ import { encrypt } from "../services/cryptoService";
 const API_NAME = "notesapi";
 
 function useNotesApi() {
-  const { dispatch } = useContext(AppStateContext);
+  const { state, dispatch } = useContext(AppStateContext);
 
   const fetchNotes = useCallback(async () => {
     dispatch({ type: "FETCHING_NOTES_STARTED", payload: {} });
     try {
+      const data = { body: { userRef: state.user?.email } };
+      console.log("fetching with data: ", data);
+
       // Fetch the notes from db
-      const res = await API.get(API_NAME, "/notes", {});
+      const res = await API.get(API_NAME, `/notes/${state.user?.email}`, {});
 
       // Update the state with the notes
       dispatch({
         type: "FETCHING_NOTES_SUCCEEDED",
-        payload: { notes: res.data.Items },
+        payload: { notes: res.data },
       });
     } catch (err) {
       console.log("error fetching notes.");
       // TODO: Handle the error
     }
-  }, [dispatch]);
+  }, [dispatch, state.user]);
 
   const createNote = useCallback(
     async (note: Note) => {
@@ -32,7 +35,7 @@ function useNotesApi() {
       try {
         // First encrypt the note contents
         const encryptedNote = await encrypt(note);
-        const data = { body: { ...encryptedNote } };
+        const data = { body: { ...encryptedNote, userRef: state.user?.email } };
 
         // Save the note in db
         const res = await API.post("notesapi", "/notes", data);
@@ -47,7 +50,7 @@ function useNotesApi() {
         console.log("error creating a note.");
       }
     },
-    [dispatch]
+    [dispatch, state.user]
   );
 
   const updateNote = useCallback(

@@ -34,7 +34,7 @@ async function canPerformAction(event) {
 }
 
 // declare a new express app
-var app = express();
+const app = express();
 app.use(bodyParser.json());
 app.use(awsServerlessExpressMiddleware.eventContext());
 
@@ -52,17 +52,21 @@ app.use(function (req, res, next) {
  * GET methods *
  **********************/
 
-app.get("/notes", async function (req, res) {
+app.get("/notes/*", async function (req, res) {
+  const userRef = req.params[0];
+
   try {
-    const data = await getNotes();
-    res.json({ data: data });
+    const data = await getNotes(userRef);
+    const filteredData = data.Items.filter((item) => item.userRef === userRef);
+
+    res.json({ data: filteredData });
   } catch (err) {
     res.json({ error: err });
   }
 });
 
-async function getNotes() {
-  var params = { TableName: ddb_table_name };
+async function getNotes(userRef) {
+  const params = { TableName: ddb_table_name };
   try {
     const data = await docClient.scan(params).promise();
     return data;
@@ -81,7 +85,7 @@ app.post("/notes", async function (req, res) {
   try {
     await canPerformAction(event);
     const input = { ...body, id: uuid() };
-    var params = {
+    const params = {
       TableName: ddb_table_name,
       Item: input,
     };
@@ -107,7 +111,7 @@ app.put("/notes", async function (req, res) {
   try {
     await canPerformAction(event);
     const input = note;
-    var params = {
+    const params = {
       TableName: ddb_table_name,
       Item: input,
       Key: { id },
@@ -142,7 +146,7 @@ app.delete("/notes", async function (req, res) {
 
   try {
     await canPerformAction(event);
-    var params = {
+    const params = {
       TableName: ddb_table_name,
       Key: { id },
     };
