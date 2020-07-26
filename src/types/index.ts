@@ -9,6 +9,8 @@ export type AppState = {
   isEncrypting: boolean;
 };
 
+export type EditorMode = "view" | "edit";
+
 export type Note = {
   id?: string;
   userRef?: string;
@@ -24,5 +26,5 @@ export type AppReducerAction = {
 export type User = {
   username: string;
   email: string;
-  iAuthorized: boolean;
+  isAuthorized: boolean;
 };

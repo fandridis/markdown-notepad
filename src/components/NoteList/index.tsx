@@ -101,9 +101,13 @@ function NoteList() {
           dataSource={state.notes}
           loading={state.isFetchingNotes}
           renderItem={(item: Note) => (
-            <ListItemWrapper isHighlighted={item.id === state.selectedNote?.id}>
+            <ListItemWrapper
+              isHighlighted={item.id === state.selectedNote?.id}
+              data-testid={`list-item-wrapper-${item.id}`}
+            >
               <ListItem
                 className={isClickDisabled ? "listItem--disabled" : ""}
+                data-testid={`list-item-${item.id}`}
                 onClick={() => onListItemClick(item)}
               >
                 <List.Item.Meta title={item.title} />

@@ -14,6 +14,12 @@
         "categories": {
             "auth": {
                 "markdownnotepadba9d5d4e": {}
+            },
+            "hosting": {
+                "amplifyhosting": {
+                    "appId": "d3p4rqeeukp591",
+                    "type": "cicd"
+                }
             }
         }
     }

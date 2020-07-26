@@ -89,4 +89,5 @@ function AppWrapper() {
   );
 }
 
+export { App };
 export default withAuthenticator(AppWrapper);

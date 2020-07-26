@@ -194,8 +194,8 @@ function MarkdownEditor() {
                       type="primary"
                       danger
                       disabled={state.isMutatingNote}
+                      icon={<DeleteOutlined style={{ fontSize: "16px" }} />}
                     >
-                      <DeleteOutlined style={{ fontSize: "16px" }} />
                       Delete
                     </Button>
                   </Popconfirm>
@@ -203,9 +203,9 @@ function MarkdownEditor() {
                 <Button
                   type="primary"
                   disabled={state.isMutatingNote}
+                  icon={<SaveOutlined style={{ fontSize: "16px" }} />}
                   onClick={onSave}
                 >
-                  <SaveOutlined style={{ fontSize: "16px" }} />
                   {note.id ? "Save" : "Create"}
                 </Button>
               </div>
@@ -213,9 +213,9 @@ function MarkdownEditor() {
           ) : (
             <Button
               disabled={state.isMutatingNote || state.isDecrypting}
+              icon={<EditOutlined style={{ fontSize: "16px" }} />}
               onClick={handleToggleMode}
             >
-              <EditOutlined style={{ fontSize: "16px" }} />
               Edit
             </Button>
           )}

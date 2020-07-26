@@ -1,9 +1,26 @@
-import React from 'react';
-import { render } from '@testing-library/react';
-import App from './App';
+import React from "react";
+import { render } from "@testing-library/react";
+import { App } from "./App";
+import { AppStateContext, INITIAL_STATE } from "./context";
 
-test('renders learn react link', () => {
-  const { getByText } = render(<App />);
-  const linkElement = getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+const userMock = {
+  username: "George",
+  email: "george@email.com",
+  isAuthorized: true,
+};
+
+const dispatchMock = jest.fn();
+
+test("renders a greeting by username", () => {
+  const stateMock = { ...INITIAL_STATE, user: userMock };
+  const { getByText } = render(
+    <AppStateContext.Provider
+      value={{ state: stateMock, dispatch: dispatchMock }}
+    >
+      <App user={userMock} />
+    </AppStateContext.Provider>
+  );
+  const greetingElement = getByText(/George/i);
+
+  expect(greetingElement).toBeInTheDocument();
 });
