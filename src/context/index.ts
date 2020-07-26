@@ -22,7 +22,6 @@ export const appReducer: Reducer<AppState, AppReducerAction> = (
   state,
   action
 ) => {
-  console.log("Action started: ", action);
   switch (action.type) {
     case "USER_AUTHENTICATED":
       return { ...state, user: action.payload.user };

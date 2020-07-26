@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useReducer, useContext } from "react";
-import { Auth } from "aws-amplify";
 import { withAuthenticator } from "@aws-amplify/ui-react";
-import { Button, Tooltip } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
 import styled from "styled-components";
 import checkUser from "./utils/checkUser";
-import { MarkdownEditor, NoteList } from "./components";
+import { MarkdownEditor, NoteList, Header } from "./components";
 import { AppStateContext, appReducer, INITIAL_STATE } from "./context";
 import useNotesApi from "./hooks/useNotesApi";
 import { User } from "./types";
-import "./App.css";
 
+/**
+ * TYPES
+ */
 type AppProps = {
   user: User;
 };
@@ -37,34 +36,6 @@ const Content = styled.div`
   box-shadow: 1px 1px 8px rgba(10, 10, 10, 0.1);
 `;
 
-const Header = styled.div`
-  overflow: scroll;
-  grid-column: span 2;
-  padding: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #ddd;
-
-  h3 {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 600;
-    color: rgb(24, 144, 255);
-  }
-`;
-
-const Main = styled.div`
-  flex: 1;
-  overflow: scroll;
-`;
-
-const Sidebar = styled.div`
-  max-height: 80vh;
-  overflow: scroll;
-  border-right: 1px solid #ddd;
-`;
-
 /**
  * COMPONENT
  */
@@ -82,65 +53,19 @@ function App(props: AppProps) {
     }
   }, [state.user, fetchNotes]);
 
-  const onAddNewNote = () => {
-    const note = {
-      title: "",
-      content: "",
-    };
-    dispatch({
-      type: "TOGGLE_MODE",
-      payload: { mode: "edit", note },
-    });
-  };
-
-  const handleLogout = () => {
-    Auth.signOut()
-      .then(() => {
-        dispatch({ type: "LOGOUT_SUCCEEDED", payload: {} });
-        window.location.reload();
-      })
-      .catch(() => console.log("error signing out: "));
-  };
-
   return (
     <Container>
       <Content>
-        <Header>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <h3 style={{ marginRight: "8px" }}>
-              Account: {props.user.username}
-            </h3>
-            <Button size="small" onClick={handleLogout}>
-              Logout
-            </Button>
-          </div>
-
-          <Tooltip
-            title={state.mode === "edit" ? "Finish editing to enable" : ""}
-          >
-            <Button
-              onClick={onAddNewNote}
-              disabled={state.mode === "edit"}
-              type="primary"
-              icon={<PlusOutlined />}
-            >
-              New note
-            </Button>
-          </Tooltip>
-        </Header>
-        <Sidebar>
-          <NoteList />
-        </Sidebar>
-        <Main>
-          <MarkdownEditor />
-        </Main>
+        <Header />
+        <NoteList />
+        <MarkdownEditor />
       </Content>
     </Container>
   );
 }
 
 /**
- * Wrapping the App with the AppStateContext so the main App component and
+ * Wrapping the App with the AppStateContext so the App component and
  * all its children have access to the appState.
  */
 function AppWrapper() {
@@ -152,7 +77,9 @@ function AppWrapper() {
   }, []);
 
   if (!user) {
-    return <div>Loading</div>;
+    // Will never render this as the withAuthenticator HOC takes over when there is
+    // no user and renders the amplify-ui ready-made login page.
+    return null;
   }
 
   return (

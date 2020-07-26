@@ -13,8 +13,21 @@ import useNotesApi from "../../hooks/useNotesApi";
 import { Note } from "../../types";
 
 /**
+ * TYPES
+ */
+type InputChange =
+  | React.ChangeEvent<HTMLInputElement>
+  | React.ChangeEvent<HTMLTextAreaElement>;
+
+/**
  * STYLES
  */
+
+const MarkdownEditorWrapper = styled.div`
+  flex: 1;
+  overflow: scroll;
+`;
+
 const Container = styled.div`
   width: 100%;
   height: 100%;
@@ -59,6 +72,7 @@ const Footer = styled.div`
 `;
 
 const EmptyStateContainer = styled.div`
+  opacity: 0.7;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -82,17 +96,15 @@ const EmptyStateContainer = styled.div`
 function MarkdownEditor() {
   const { state, dispatch } = useContext(AppStateContext);
   const { createNote, updateNote, deleteNote } = useNotesApi();
-  const [note, setNote] = useState<Note>({ id: "", title: "", content: "" });
-  const isOnEditMode = state.mode === "edit";
+  const [note, setNote] = useState<Note>({ title: "", content: "" });
 
-  // If coming from editing an existing note, populate the fields with its data
   useEffect(() => {
     if (state.selectedNote) {
       setNote({ ...state.selectedNote });
     }
   }, [state.selectedNote]);
 
-  const handleInputChange = (e: any) => {
+  const onInputChange = (e: InputChange) => {
     setNote({ ...note, [e.target.name]: e.target.value });
   };
 
@@ -139,80 +151,78 @@ function MarkdownEditor() {
   }
 
   return (
-    <Container>
-      <Header>
-        {state.mode === "view" ? (
-          <span>{note.title}</span>
-        ) : (
-          <Input
-            placeholder="Add a title"
-            value={note.title || ""}
-            name="title"
-            onChange={handleInputChange}
+    <MarkdownEditorWrapper>
+      <Container>
+        <Header>
+          {state.mode === "view" ? (
+            <span>{note.title}</span>
+          ) : (
+            <Input
+              placeholder="Add a title"
+              value={note.title || ""}
+              name="title"
+              onChange={onInputChange}
+            />
+          )}
+        </Header>
+        <Content>
+          <EditorContent
+            content={note.content}
+            name="content"
+            onContentChange={onInputChange}
           />
-        )}
-      </Header>
-      <Content>
-        <EditorContent
-          content={note.content}
-          name="content"
-          onContentChange={handleInputChange}
-        />
-      </Content>
-      <Footer>
-        {isOnEditMode ? (
-          <>
-            <div style={{ flex: 1 }}>
-              <Button disabled={state.isMutatingNote} onClick={onCancel}>
-                Cancel
-              </Button>
-            </div>
-            <div>
-              {note.id && (
-                <Popconfirm
-                  title="Are you sure delete this task?"
-                  onConfirm={onDelete}
-                  disabled={state.isMutatingNote}
-                  okText="Yes"
-                  cancelText="No"
-                >
-                  <Button
-                    style={{ marginRight: "8px" }}
-                    type="primary"
-                    danger
+        </Content>
+        <Footer>
+          {state.mode === "edit" ? (
+            <>
+              <div style={{ flex: 1 }}>
+                <Button disabled={state.isMutatingNote} onClick={onCancel}>
+                  Cancel
+                </Button>
+              </div>
+              <div>
+                {note.id && (
+                  <Popconfirm
+                    title="Are you sure delete this task?"
+                    onConfirm={onDelete}
                     disabled={state.isMutatingNote}
+                    okText="Yes"
+                    cancelText="No"
                   >
-                    <DeleteOutlined style={{ fontSize: "16px" }} />
-                    Delete
-                  </Button>
-                </Popconfirm>
-              )}
-              <Button
-                type="primary"
-                disabled={state.isMutatingNote}
-                onClick={onSave}
-              >
-                <SaveOutlined style={{ fontSize: "16px" }} />
-                {note.id ? "Save" : "Create"}
-              </Button>
-            </div>
-          </>
-        ) : (
-          <Button
-            disabled={state.isMutatingNote || state.isDecrypting}
-            onClick={handleToggleMode}
-          >
-            <EditOutlined style={{ fontSize: "16px" }} />
-            Edit
-          </Button>
-        )}
-      </Footer>
-    </Container>
+                    <Button
+                      style={{ marginRight: "8px" }}
+                      type="primary"
+                      danger
+                      disabled={state.isMutatingNote}
+                    >
+                      <DeleteOutlined style={{ fontSize: "16px" }} />
+                      Delete
+                    </Button>
+                  </Popconfirm>
+                )}
+                <Button
+                  type="primary"
+                  disabled={state.isMutatingNote}
+                  onClick={onSave}
+                >
+                  <SaveOutlined style={{ fontSize: "16px" }} />
+                  {note.id ? "Save" : "Create"}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <Button
+              disabled={state.isMutatingNote || state.isDecrypting}
+              onClick={handleToggleMode}
+            >
+              <EditOutlined style={{ fontSize: "16px" }} />
+              Edit
+            </Button>
+          )}
+        </Footer>
+      </Container>
+    </MarkdownEditorWrapper>
   );
 }
 
 export default MarkdownEditor;
-
-/**
- * HELPERS
- */

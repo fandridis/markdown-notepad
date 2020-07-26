@@ -10,7 +10,7 @@ import { Spinner } from "../../components";
 type EditorContentProps = {
   content: string;
   name: string;
-  onContentChange: (e: any) => void;
+  onContentChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 };
 
 /**
@@ -51,7 +51,6 @@ EditorContent.defaultProps = {
  */
 function EditorContent(props: EditorContentProps) {
   const { state } = useContext(AppStateContext);
-
   const showLoading = state.isEncrypting || state.isDecrypting;
 
   return (

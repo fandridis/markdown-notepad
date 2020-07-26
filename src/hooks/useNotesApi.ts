@@ -29,6 +29,7 @@ function useNotesApi() {
   const createNote = useCallback(
     async (note: Note) => {
       dispatch({ type: "MUTATING_NOTE_STARTED", payload: {} });
+      dispatch({ type: "ENCRYPTION_STARTED", payload: {} });
       try {
         // First encrypt the note contents
         const encryptedNote = await encrypt(note);
@@ -37,7 +38,8 @@ function useNotesApi() {
         // Save the note in db
         const res = await API.post("notesapi", "/notes", data);
 
-        // Update the app state with the new note
+        // Update the app state with the new note and change to view mode
+        dispatch({ type: "ENCRYPTION_SUCCEEDED", payload: {} });
         dispatch({ type: "MUTATING_NOTE_SUCCEEDED", payload: {} });
         dispatch({
           type: "NOTE_CREATED",
@@ -55,7 +57,7 @@ function useNotesApi() {
       dispatch({ type: "MUTATING_NOTE_STARTED", payload: {} });
       dispatch({ type: "ENCRYPTION_STARTED", payload: {} });
       try {
-        // First encrypt the notes contents
+        // First encrypt the note contents
         const encryptedNote = await encrypt(note);
         const data = { body: { ...encryptedNote } };
 
@@ -70,7 +72,7 @@ function useNotesApi() {
           payload: { note, mode: "view" },
         });
       } catch (err) {
-        console.log("error creating a note.");
+        console.log("error updating the note.");
       }
     },
     [dispatch]
