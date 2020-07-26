@@ -183,7 +183,7 @@ function MarkdownEditor() {
               <div>
                 {note.id && (
                   <Popconfirm
-                    title="Are you sure delete this task?"
+                    title="Are you sure?"
                     onConfirm={onDelete}
                     disabled={state.isMutatingNote}
                     okText="Yes"
