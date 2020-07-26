@@ -38,6 +38,7 @@ const Content = styled.div`
 `;
 
 const Header = styled.div`
+  overflow: scroll;
   grid-column: span 2;
   padding: 12px;
   display: flex;
@@ -73,13 +74,13 @@ function App(props: AppProps) {
 
   useEffect(() => {
     dispatch({ type: "USER_AUTHENTICATED", payload: { user: props.user } });
-  }, []);
+  }, [dispatch, props.user]);
 
   useEffect(() => {
     if (state.user) {
       fetchNotes();
     }
-  }, [state.user]);
+  }, [state.user, fetchNotes]);
 
   const onAddNewNote = () => {
     const note = {
@@ -105,11 +106,13 @@ function App(props: AppProps) {
     <Container>
       <Content>
         <Header>
-          <div style={{ display: "flex" }}>
+          <div style={{ display: "flex", alignItems: "center" }}>
             <h3 style={{ marginRight: "8px" }}>
               Account: {props.user.username}
             </h3>
-            <Button onClick={handleLogout}>Logout</Button>
+            <Button size="small" onClick={handleLogout}>
+              Logout
+            </Button>
           </div>
 
           <Tooltip

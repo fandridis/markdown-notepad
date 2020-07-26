@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import styled from "styled-components";
-import { Button, Input } from "antd";
+import { Button, Input, Popconfirm, message } from "antd";
 import {
   FileMarkdownOutlined,
   DeleteOutlined,
@@ -58,6 +58,24 @@ const Footer = styled.div`
   align-items: center;
 `;
 
+const EmptyStateContainer = styled.div`
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  & > span {
+    font-size: 32px;
+  }
+
+  @media (min-width: 768px) {
+    & > span {
+      font-size: 72px;
+    }
+  }
+`;
+
 /**
  * COMPONENT
  */
@@ -79,6 +97,7 @@ function MarkdownEditor() {
   };
 
   const onSave = () => {
+    if (note.title === "") return message.warn("Please add a title first.");
     if (note.id) {
       updateNote(note);
     } else {
@@ -111,19 +130,11 @@ function MarkdownEditor() {
 
   if (!state.selectedNote) {
     return (
-      <div
-        style={{
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <FileMarkdownOutlined style={{ fontSize: "80px" }} />
+      <EmptyStateContainer>
+        <FileMarkdownOutlined />
         <h2 style={{ margin: "24px 0px 4px 0px" }}>Nothing to see here.</h2>
         <p>Select a note from the list or create a new one.</p>
-      </div>
+      </EmptyStateContainer>
     );
   }
 
@@ -158,16 +169,23 @@ function MarkdownEditor() {
             </div>
             <div>
               {note.id && (
-                <Button
-                  style={{ marginRight: "8px" }}
-                  type="primary"
-                  danger
+                <Popconfirm
+                  title="Are you sure delete this task?"
+                  onConfirm={onDelete}
                   disabled={state.isMutatingNote}
-                  onClick={onDelete}
+                  okText="Yes"
+                  cancelText="No"
                 >
-                  <DeleteOutlined style={{ fontSize: "16px" }} />
-                  Delete
-                </Button>
+                  <Button
+                    style={{ marginRight: "8px" }}
+                    type="primary"
+                    danger
+                    disabled={state.isMutatingNote}
+                  >
+                    <DeleteOutlined style={{ fontSize: "16px" }} />
+                    Delete
+                  </Button>
+                </Popconfirm>
               )}
               <Button
                 type="primary"
@@ -175,7 +193,7 @@ function MarkdownEditor() {
                 onClick={onSave}
               >
                 <SaveOutlined style={{ fontSize: "16px" }} />
-                Save
+                {note.id ? "Save" : "Create"}
               </Button>
             </div>
           </>

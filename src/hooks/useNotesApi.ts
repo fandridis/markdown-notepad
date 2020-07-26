@@ -12,10 +12,7 @@ function useNotesApi() {
   const fetchNotes = useCallback(async () => {
     dispatch({ type: "FETCHING_NOTES_STARTED", payload: {} });
     try {
-      const data = { body: { userRef: state.user?.email } };
-      console.log("fetching with data: ", data);
-
-      // Fetch the notes from db
+      // Fetch the current users notes from db
       const res = await API.get(API_NAME, `/notes/${state.user?.email}`, {});
 
       // Update the state with the notes
