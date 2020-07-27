@@ -19,6 +19,11 @@ const NoteListWrapper = styled.div`
   max-height: 80vh;
   overflow: scroll;
   border-right: 1px solid #ddd;
+
+  @media (max-width: 570px) {
+    max-height: 200px;
+    border-bottom: 3px solid grey;
+  }
 `;
 
 const ListItemWrapper = styled.div<ListItemWrapperProps>`

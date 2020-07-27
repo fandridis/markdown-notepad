@@ -33,6 +33,8 @@ Services used:
 - **Database:** DynamoDB
 - **API:** Node/Express on a serverless function
 
+---
+
 ## To check it out locally:
 
 1. Clone the repo
@@ -48,5 +50,6 @@ Run **`yarn test`** to run some unit tests.
 - Configure the editor to allow rendering HTML, but disable malicious options.
 - Establish a style-guide and set some standard styles and components to be set once and be reused across the app.
 - Style the whole application to be accessible in mobile devices.
+- Add meaningful error handling.
 - Add more tests and introduce e2e testing.
 - Of course, use a real encrypt/decrypt service.

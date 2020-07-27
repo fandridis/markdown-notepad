@@ -18,13 +18,15 @@ export type Note = {
   content: string;
 };
 
-export type AppReducerAction = {
-  type: string;
-  payload: any;
-};
-
 export type User = {
   username: string;
   email: string;
   isAuthorized: boolean;
 };
+
+export type AppReducerAction = {
+  type: string;
+  payload: any;
+};
+
+export type UseNotesApiCallback = (errorMessage: string, data?: any) => void;

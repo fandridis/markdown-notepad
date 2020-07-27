@@ -72,11 +72,8 @@ export const appReducer: Reducer<AppState, AppReducerAction> = (
     case "FETCHING_NOTES_SUCCEEDED":
       return { ...state, notes: action.payload.notes, isFetchingNotes: false };
 
-    case "MUTATING_NOTE_STARTED":
-      return { ...state, isMutatingNote: true };
-
-    case "MUTATING_NOTE_SUCCEEDED":
-      return { ...state, isMutatingNote: false };
+    case "FETCHING_NOTES_FAILED":
+      return { ...state, isFetchingNotes: false };
 
     case "DECRYPTION_STARTED":
       return { ...state, isDecrypting: true };
@@ -89,6 +86,20 @@ export const appReducer: Reducer<AppState, AppReducerAction> = (
 
     case "ENCRYPTION_SUCCEEDED":
       return { ...state, isEncrypting: false };
+
+    case "MUTATING_NOTE_STARTED":
+      return { ...state, isMutatingNote: true };
+
+    case "MUTATING_NOTE_SUCCEEDED":
+      return { ...state, isMutatingNote: false };
+
+    case "MUTATING_NOTE_FAILED":
+      return {
+        ...state,
+        isMutatingNote: false,
+        isDecrypting: false,
+        isEncrypting: false,
+      };
 
     default:
       return state;

@@ -74,6 +74,7 @@ const Footer = styled.div`
 const EmptyStateContainer = styled.div`
   opacity: 0.7;
   height: 100%;
+  min-height: 50vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -111,14 +112,14 @@ function MarkdownEditor() {
   const onSave = () => {
     if (note.title === "") return message.warn("Please add a title first.");
     if (note.id) {
-      updateNote(note);
+      updateNote(note, (errorMessage) => message.error(errorMessage));
     } else {
-      createNote(note);
+      createNote(note, (errorMessage) => message.error(errorMessage));
     }
   };
 
   const onDelete = () => {
-    deleteNote(note);
+    deleteNote(note, (errorMessage) => message.error(errorMessage));
   };
 
   const onCancel = () => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useReducer, useContext } from "react";
 import { withAuthenticator } from "@aws-amplify/ui-react";
 import styled from "styled-components";
+import { message } from "antd";
 import checkUser from "./utils/checkUser";
 import { MarkdownEditor, NoteList, Header } from "./components";
 import { AppStateContext, appReducer, INITIAL_STATE } from "./context";
@@ -34,6 +35,11 @@ const Content = styled.div`
   grid-template-rows: auto 1fr;
   border: 1px solid #eee;
   box-shadow: 1px 1px 8px rgba(10, 10, 10, 0.1);
+
+  @media (max-width: 570px) {
+    display: flex;
+    flex-direction: column;
+  }
 `;
 
 /**
@@ -49,7 +55,9 @@ function App(props: AppProps) {
 
   useEffect(() => {
     if (state.user) {
-      fetchNotes();
+      fetchNotes((errorMessage) => {
+        message.error(errorMessage);
+      });
     }
   }, [state.user, fetchNotes]);
 

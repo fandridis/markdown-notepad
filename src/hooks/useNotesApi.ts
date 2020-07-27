@@ -1,6 +1,6 @@
 import { useContext, useCallback } from "react";
 import { API } from "aws-amplify";
-import { Note } from "../types";
+import { Note, UseNotesApiCallback } from "../types";
 import { AppStateContext } from "../context";
 import { encrypt } from "../services/cryptoService";
 
@@ -9,25 +9,29 @@ const API_NAME = "notesapi";
 function useNotesApi() {
   const { state, dispatch } = useContext(AppStateContext);
 
-  const fetchNotes = useCallback(async () => {
-    dispatch({ type: "FETCHING_NOTES_STARTED", payload: {} });
-    try {
-      // Fetch the current users notes from db
-      const res = await API.get(API_NAME, `/notes/${state.user?.email}`, {});
+  const fetchNotes = useCallback(
+    async (cb: UseNotesApiCallback) => {
+      dispatch({ type: "FETCHING_NOTES_STARTED", payload: {} });
+      try {
+        // Fetch the current users notes from db
+        const res = await API.get(API_NAME, `/notes/${state.user?.email}`, {});
 
-      // Update the state with the notes
-      dispatch({
-        type: "FETCHING_NOTES_SUCCEEDED",
-        payload: { notes: res.data },
-      });
-    } catch (err) {
-      console.log("error fetching notes.");
-      // TODO: Handle the error
-    }
-  }, [dispatch, state.user]);
+        // Update the state with the notes
+        dispatch({
+          type: "FETCHING_NOTES_SUCCEEDED",
+          payload: { notes: res.data },
+        });
+      } catch (err) {
+        console.log("error fetching notes: ", err);
+        dispatch({ type: "FETCHING_NOTES_FAILED", payload: {} });
+        cb("Unable to fetch notes.");
+      }
+    },
+    [dispatch, state.user]
+  );
 
   const createNote = useCallback(
-    async (note: Note) => {
+    async (note: Note, cb: UseNotesApiCallback) => {
       dispatch({ type: "MUTATING_NOTE_STARTED", payload: {} });
       dispatch({ type: "ENCRYPTION_STARTED", payload: {} });
       try {
@@ -46,14 +50,16 @@ function useNotesApi() {
           payload: { note: res.note, mode: "view" },
         });
       } catch (err) {
-        console.log("error creating a note.");
+        console.log("error creating a note: ", err);
+        dispatch({ type: "MUTATING_NOTE_FAILED", payload: {} });
+        cb("Couldn't save the note.");
       }
     },
     [dispatch, state.user]
   );
 
   const updateNote = useCallback(
-    async (note: Note) => {
+    async (note: Note, cb: UseNotesApiCallback) => {
       dispatch({ type: "MUTATING_NOTE_STARTED", payload: {} });
       dispatch({ type: "ENCRYPTION_STARTED", payload: {} });
       try {
@@ -72,14 +78,16 @@ function useNotesApi() {
           payload: { note, mode: "view" },
         });
       } catch (err) {
-        console.log("error updating the note.");
+        console.log("error updating the note: ", err);
+        dispatch({ type: "MUTATING_NOTE_FAILED", payload: {} });
+        cb("Couldn't save the note.");
       }
     },
     [dispatch]
   );
 
   const deleteNote = useCallback(
-    async (note: Note) => {
+    async (note: Note, cb: UseNotesApiCallback) => {
       dispatch({ type: "MUTATING_NOTE_STARTED", payload: {} });
       try {
         const data = {
@@ -95,7 +103,9 @@ function useNotesApi() {
           payload: { note, selectedNote: null, mode: "view" },
         });
       } catch (err) {
-        console.log("error deleting a note.");
+        console.log("error deleting a note: ", err);
+        dispatch({ type: "MUTATING_NOTE_FAILED", payload: {} });
+        cb("Couldn't delete the note");
       }
     },
     [dispatch]
